@@ -1,0 +1,150 @@
+{{ define "gallery" }}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>GLSL Sandbox Gallery</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1" />
+    <style>
+      body {
+        background-color: #000000;
+        font: 13px Tahoma, Arial, Helvetica, sans-serif;
+        margin: 3em 4em;
+        color: #888;
+      }
+      a {
+        color: #aaa;
+        text-decoration: none;
+      }
+      a:hover {
+        color: #009de9;
+      }
+
+      h1,
+      h1 a,
+      h2 {
+        color: #009de9;
+        font: 28px Tahoma, Arial, Helvetica, sans-serif;
+        font-weight: normal;
+        margin-bottom: 7px;
+      }
+      h2 {
+        font-size: 22px;
+        margin-top: 2em;
+      }
+      #gallery {
+        width: 100%;
+        margin-top: 4em;
+      }
+      #gallery > a {
+        border: none;
+      }
+      #gallery img {
+        margin-right: 2em;
+        width: 200px;
+        height: 100px;
+        border: 1px solid #212121;
+      }
+      #gallery img:hover {
+        box-shadow: 0px 0px 24px 10px #263d65;
+        border: 1px solid #316fae;
+      }
+      .effect {
+        display: inline-block;
+        margin-bottom: 2em;
+      }
+      form {
+        margin-bottom: 2em;
+      }
+      label {
+        margin-top: 1.4em;
+        margin-bottom: 0.6em;
+        font-size: 14px;
+        color: #009de9;
+      }
+      input,
+      textarea {
+        background: #222;
+        font-size: 14px;
+        color: #ccc;
+        border: none;
+        padding: 5px 10px;
+        outline: none;
+        cursor: pointer;
+      }
+      input[type="submit"]:hover {
+        color: #009de9;
+      }
+    </style>
+    <script>
+      function $(id, m) {
+        document.getElementById(id).style.display = m ? "block" : "none";
+      }
+    </script>
+  </head>
+  <body>
+    <div id="header">
+      <h1><a href="/">GLSL Sandbox</a></h1>
+      <a href="/e">Create new effect!</a> &nbsp;&nbsp;/&nbsp;
+      <a
+        href="https://github.com/umangbhalodiya/Threejs-background-generator-with-compiler"
+        >github</a
+      >
+      &nbsp;&nbsp;/&nbsp; gallery by
+      <a href="http://twitter.com/thevaw">@thevaw</a> and
+      <a href="http://twitter.com/feiss">@feiss</a> &nbsp;/&nbsp; editor by
+      <a href="http://twitter.com/mrkishi">@mrkishi</a>,
+      <a href="http://twitter.com/p01">@p01</a>,
+      <a href="http://twitter.com/alteredq">@alteredq</a>,
+      <a href="http://twitter.com/kusmabite">@kusmabite</a> and
+      <a href="http://twitter.com/emackey">@emackey</a>
+    </div>
+
+    <div id="gallery">
+      {{ if .Admin }}
+      <form action="/admin" method="GET">
+        <label style="color: #009de9" for="parent">Effect ID</label>
+        <input type="text" id="parent" name="parent" />
+        <input type="submit" value="Submit" />
+      </form>
+      <form action="/admin" method="POST">
+        <input type="hidden" id="page" name="page" value="{{ .Page }}" />
+        {{ end }} {{ $admin := .Admin }} {{ range .Effects }}
+        <div class="effect">
+          <a href="/e#{{ .ID }}.{{ .Version }}"><img src="{{ .Image }}" /></a>
+          {{ if $admin }} {{ $name := checkboxID .ID }}
+          <div>
+            <a style="color: #009de9" href="/admin?parent={{ .ID }}"
+              >Children</a
+            >
+            <label style="color: #009de9" for="{{ $name }}">Hidden</label>
+            <input
+              type="checkbox"
+              id="{{ $name }}"
+              name="{{ $name }}"
+              {{
+              checked
+              .Hidden
+              }}
+            />
+            <input type="hidden" name="effects" value="{{ .ID }}" />
+          </div>
+          {{ end }}
+        </div>
+        {{ end }} {{ if .Admin }}
+        <input type="submit" value="Submit" />
+      </form>
+      {{ end }}
+    </div>
+
+    <div id="paginate">
+      {{ if .IsPrevious }}
+      <a href="{{ .PreviousPage }}">Previous page</a>
+
+      {{ if .IsNext }} &nbsp;&nbsp; {{ end }} {{ end }} {{ if .IsNext }}
+      <a href="{{ .NextPage }}">Next page</a>
+      {{ end }}
+    </div>
+  </body>
+</html>
+{{ end }}
