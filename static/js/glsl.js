@@ -1,11 +1,11 @@
-CodeMirror.defineMode("glsl", function(config, parserConfig) {
+CodeMirror.defineMode("glsl", function (config, parserConfig) {
   var indentUnit = config.indentUnit,
-      keywords = parserConfig.keywords || {},
-      builtins = parserConfig.builtins || {},
-      blockKeywords = parserConfig.blockKeywords || {},
-      atoms = parserConfig.atoms || {},
-      hooks = parserConfig.hooks || {},
-      multiLineStrings = parserConfig.multiLineStrings;
+    keywords = parserConfig.keywords || {},
+    builtins = parserConfig.builtins || {},
+    blockKeywords = parserConfig.blockKeywords || {},
+    atoms = parserConfig.atoms || {},
+    hooks = parserConfig.hooks || {},
+    multiLineStrings = parserConfig.multiLineStrings;
   var isOperatorChar = /[+\-*&%=<>!?|\/]/;
 
   var curPunc;
@@ -56,26 +56,31 @@ CodeMirror.defineMode("glsl", function(config, parserConfig) {
   }
 
   function tokenString(quote) {
-    return function(stream, state) {
-      var escaped = false, next, end = false;
+    return function (stream, state) {
+      var escaped = false,
+        next,
+        end = false;
       while ((next = stream.next()) != null) {
-        if (next == quote && !escaped) {end = true; break;}
+        if (next == quote && !escaped) {
+          end = true;
+          break;
+        }
         escaped = !escaped && next == "\\";
       }
-      if (end || !(escaped || multiLineStrings))
-        state.tokenize = tokenBase;
+      if (end || !(escaped || multiLineStrings)) state.tokenize = tokenBase;
       return "string";
     };
   }
 
   function tokenComment(stream, state) {
-    var maybeEnd = false, ch;
-    while (ch = stream.next()) {
+    var maybeEnd = false,
+      ch;
+    while ((ch = stream.next())) {
       if (ch == "/" && maybeEnd) {
         state.tokenize = tokenBase;
         break;
       }
-      maybeEnd = (ch == "*");
+      maybeEnd = ch == "*";
     }
     return "comment";
   }
@@ -88,28 +93,34 @@ CodeMirror.defineMode("glsl", function(config, parserConfig) {
     this.prev = prev;
   }
   function pushContext(state, col, type) {
-    return state.context = new Context(state.indented, col, type, null, state.context);
+    return (state.context = new Context(
+      state.indented,
+      col,
+      type,
+      null,
+      state.context
+    ));
   }
   function popContext(state) {
     var t = state.context.type;
     if (t == ")" || t == "]" || t == "}")
       state.indented = state.context.indented;
-    return state.context = state.context.prev;
+    return (state.context = state.context.prev);
   }
 
   // Interface
 
   return {
-    startState: function(basecolumn) {
+    startState: function (basecolumn) {
       return {
         tokenize: null,
         context: new Context((basecolumn || 0) - indentUnit, 0, "top", false),
         indented: 0,
-        startOfLine: true
+        startOfLine: true,
       };
     },
 
-    token: function(stream, state) {
+    token: function (stream, state) {
       var ctx = state.context;
       if (stream.sol()) {
         if (ctx.align == null) ctx.align = false;
@@ -122,7 +133,8 @@ CodeMirror.defineMode("glsl", function(config, parserConfig) {
       if (style == "comment" || style == "meta") return style;
       if (ctx.align == null) ctx.align = true;
 
-      if ((curPunc == ";" || curPunc == ":") && ctx.type == "statement") popContext(state);
+      if ((curPunc == ";" || curPunc == ":") && ctx.type == "statement")
+        popContext(state);
       else if (curPunc == "{") pushContext(state, stream.column(), "}");
       else if (curPunc == "[") pushContext(state, stream.column(), "]");
       else if (curPunc == "(") pushContext(state, stream.column(), ")");
@@ -130,38 +142,47 @@ CodeMirror.defineMode("glsl", function(config, parserConfig) {
         while (ctx.type == "statement") ctx = popContext(state);
         if (ctx.type == "}") ctx = popContext(state);
         while (ctx.type == "statement") ctx = popContext(state);
-      }
-      else if (curPunc == ctx.type) popContext(state);
-      else if (ctx.type == "}" || ctx.type == "top" || (ctx.type == "statement" && curPunc == "newstatement"))
+      } else if (curPunc == ctx.type) popContext(state);
+      else if (
+        ctx.type == "}" ||
+        ctx.type == "top" ||
+        (ctx.type == "statement" && curPunc == "newstatement")
+      )
         pushContext(state, stream.column(), "statement");
       state.startOfLine = false;
       return style;
     },
 
-    indent: function(state, textAfter) {
+    indent: function (state, textAfter) {
       if (state.tokenize != tokenBase && state.tokenize != null) return 0;
-      var firstChar = textAfter && textAfter.charAt(0), ctx = state.context, closing = firstChar == ctx.type;
-      if (ctx.type == "statement") return ctx.indented + (firstChar == "{" ? 0 : indentUnit);
+      var firstChar = textAfter && textAfter.charAt(0),
+        ctx = state.context,
+        closing = firstChar == ctx.type;
+      if (ctx.type == "statement")
+        return ctx.indented + (firstChar == "{" ? 0 : indentUnit);
       else if (ctx.align) return ctx.column + (closing ? 0 : 1);
       else return ctx.indented + (closing ? 0 : indentUnit);
     },
 
-    electricChars: "{}"
+    electricChars: "{}",
   };
 });
 
-(function() {
+(function () {
   function words(str) {
-    var obj = {}, words = str.split(" ");
+    var obj = {},
+      words = str.split(" ");
     for (var i = 0; i < words.length; ++i) obj[words[i]] = true;
     return obj;
   }
-  var glslKeywords = "attribute const uniform varying break continue " +
+  var glslKeywords =
+    "attribute const uniform varying break continue " +
     "do for while if else in out inout float int void bool true false " +
     "lowp mediump highp precision invariant discard return mat2 mat3 " +
     "mat4 vec2 vec3 vec4 ivec2 ivec3 ivec4 bvec2 bvec3 bvec4 sampler2D " +
     "samplerCube struct gl_FragCoord gl_FragColor";
-  var glslBuiltins = "radians degrees sin cos tan asin acos atan pow " +
+  var glslBuiltins =
+    "radians degrees sin cos tan asin acos atan pow " +
     "exp log exp2 log2 sqrt inversesqrt abs sign floor ceil fract mod " +
     "min max clamp mix step smoothstep length distance dot cross " +
     "normalize faceforward reflect refract matrixCompMult lessThan " +
@@ -193,6 +214,6 @@ CodeMirror.defineMode("glsl", function(config, parserConfig) {
     builtins: words(glslBuiltins),
     blockKeywords: words("case do else for if switch while struct"),
     atoms: words("null"),
-    hooks: {"#": cppHook}
+    hooks: { "#": cppHook },
   });
-}());
+})();
